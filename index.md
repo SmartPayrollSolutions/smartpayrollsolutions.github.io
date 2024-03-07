@@ -268,3 +268,182 @@ Use modifiers to restrict access to certain functions.
 
 By following these steps, creating a secure and transparent payroll processing solution using Ethereum smart contracts. However, it's essential to consider gas costs, scalability, and regulatory compliance when designing and deploying smart contracts for payroll processing.
 
+* Updated version of the smart contract for a payroll processing solution using Ethereum:
+
+```solidity
+pragma solidity ^0.8.0;
+
+contract Payroll {
+    struct Employee {
+        string name;
+        uint256 salary;
+        address walletAddress;
+    }
+
+    mapping(address => Employee) public employees;
+    address[] public employeeAddresses;
+
+    address public owner;
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only contract owner can perform this action");
+        _;
+    }
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    function addEmployee(string memory _name, uint256 _salary, address _walletAddress) public onlyOwner {
+        require(_walletAddress != address(0), "Invalid wallet address");
+        require(employees[_walletAddress].walletAddress == address(0), "Employee already exists");
+
+        employees[_walletAddress] = Employee(_name, _salary, _walletAddress);
+        employeeAddresses.push(_walletAddress);
+    }
+
+    function updateEmployeeSalary(address _walletAddress, uint256 _newSalary) public onlyOwner {
+        require(employees[_walletAddress].walletAddress != address(0), "Employee does not exist");
+        employees[_walletAddress].salary = _newSalary;
+    }
+
+    function processPayroll() public onlyOwner payable {
+        uint256 totalPayroll = 0;
+
+        // Calculate total payroll
+        for (uint256 i = 0; i < employeeAddresses.length; i++) {
+            totalPayroll += employees[employeeAddresses[i]].salary;
+        }
+
+        // Transfer Ether to employees
+        for (uint256 i = 0; i < employeeAddresses.length; i++) {
+            address payable employeeWallet = payable(employeeAddresses[i]);
+            employeeWallet.transfer(employees[employeeAddresses[i]].salary);
+        }
+    }
+}
+```
+
+* Updates include:
+
+1. Added an **'employeeAddresses'** array to store the addresses of all employees.
+2. Implemented an **'onlyOwner'** modifier to restrict certain functions to the contract owner.
+3. Added a constructor to set the contract owner upon deployment.
+4. Modified the **'addEmployee'** function to check for duplicate employees and prevent adding employees with a zero wallet address.
+Modified the **'processPayroll'** function to use the **'onlyOwner'** modifier and made it payable to accept Ether for payroll processing.
+These updates enhance security, access control, and functionality of the payroll smart contract.
+
+
+## Payroll System using Bitcoin
+
+
+Creating a payroll system using Bitcoin involves different considerations compared to Ethereum due to Bitcoin's scripting language and UTXO model. Below is a basic outline of how you could design a payroll system using Bitcoin:
+
+1. **Multi-Signature Wallets:**
+* Utilize multi-signature (multisig) wallets to manage payroll funds securely. A multisig address requires multiple private keys to authorize transactions.
+
+```python 
+# Example code using Python and Bitcoin's `bitcoinlib` library
+from bitcoinlib.wallets import Wallet
+
+# Create a multisig wallet with 2-of-3 keys
+wallet = Wallet.create("payroll_wallet", keys=3, sigs_required=2)
+```
+
+2. **Employee Management:**
+* Maintain a database or off-chain system to manage employee data, including Bitcoin addresses and salary information.
+* Each employee should have a unique Bitcoin address associated with their identity.
+
+3. **Payroll Processing Logic:**
+* Calculate the total amount due to each employee based on their salary.
+* Create Bitcoin transactions to transfer funds from the company's multisig wallet to employees' Bitcoin addresses.
+
+```python 
+# Example code for creating a Bitcoin transaction using `bitcoinlib`
+from bitcoinlib.transactions import Transaction
+
+# Calculate total payroll
+total_payroll = calculate_total_payroll()
+
+# Create transaction
+tx = Transaction.create(
+    wallet=wallet,
+    outputs=[(employee_address, amount) for employee_address, amount in payroll_data.items()],
+    fee=0.0001  # Fee amount in BTC
+)
+
+# Sign transaction with required keys
+tx.sign()
+
+# Broadcast transaction to Bitcoin network
+tx.send()
+```
+
+4. **Security Measures**
+* Implement proper access controls and procedures to safeguard private keys used to sign transactions.
+* Regularly audit and monitor payroll transactions to detect any anomalies or unauthorized activity.
+
+5. **Integration with External Systems:**
+* Integrate the Bitcoin payroll system with existing HR and accounting systems to automate payroll processing workflows.
+* Use APIs or custom scripts to retrieve employee data and initiate payroll transactions.
+
+6. **Compliance Considerations:**
+* Ensure compliance with relevant regulations, such as tax laws and labor regulations, when designing and implementing the payroll system.
+* Keep accurate records of payroll transactions for reporting and auditing purposes.
+
+7. **Testing and Deployment:**
+* Thoroughly test the payroll system on Bitcoin test networks before deploying it to the Bitcoin mainnet to ensure functionality and security.
+* Implement proper error handling and testing procedures to identify and address any issues.
+
+* By following these steps, creating a secure and efficient payroll system using Bitcoin, leveraging multisignature wallets and Bitcoin transactions to manage payroll funds and distribute salaries to employees.
+
+## Integrating photo attestation with Bitcoin payroll processing system
+
+* Integrating photo attestation with a Bitcoin payroll processing system adds an extra layer of verification to ensure that employees have completed their assigned tasks or work before receiving their salaries. Here's how to incorporate photo attestation into the Bitcoin payroll system:
+
+1. Employee Task Assignment:
+Assign tasks or projects to employees through an HR management system or other means.
+Each task should have a corresponding deadline and requirements.
+2. Photo Attestation:
+Employees are required to submit photographic evidence upon completion of their tasks.
+Implement a system where employees can upload photos securely, ensuring authenticity and preventing tampering.
+3. Hashing and Timestamping:
+Hash the submitted photos using cryptographic hash functions (e.g., SHA-256) to create a unique fingerprint for each image.
+Timestamp the hashed photos using a trusted timestamping service or by including them in Bitcoin transactions.
+
+```python 
+import hashlib
+import datetime
+
+def hash_photo(photo_data):
+    # Hash photo using SHA-256
+    hashed_photo = hashlib.sha256(photo_data).hexdigest()
+    return hashed_photo
+
+def timestamp_photo(hashed_photo):
+    # Include hashed photo in Bitcoin transaction using OP_RETURN
+    timestamp = datetime.datetime.now()
+    bitcoin_transaction = create_transaction(hashed_photo, timestamp)
+    return bitcoin_transaction
+```
+
+4. Verification and Consensus:
+* Share the hashed photos with a network of validators or nodes for verification.
+* Validators reach consensus on whether the submitted photos are valid and meet the requirements of the assigned tasks.
+
+5. Payroll Processing:
+* Once photo attestation is completed and verified, proceed with payroll processing as described in the previous steps.
+* Distribute salaries to employees' Bitcoin addresses using multisignature wallets and Bitcoin transactions.
+
+6. Integration and Automation:
+* Integrate photo attestation functionality into the payroll system's user interface, allowing employees to submit photos directly.
+* Automate the verification process using smart contracts or scripts to streamline the workflow and ensure timely payroll processing.
+
+7. Privacy and Security:
+* Implement privacy measures to protect employees' personal data and photos.
+* Store photos securely and ensure compliance with privacy regulations.
+
+* By integrating photo attestation with the Bitcoin payroll processing system, you can enhance the verification process and ensure that employees are fairly compensated for their work based on completed tasks. This approach increases transparency, reduces fraud, and promotes trust between employers and employees.
+
+* * * 
+*FIN* 
